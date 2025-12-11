@@ -2,10 +2,13 @@ spring:
   application:
     name: mastery-dashboard
 
+  config:
+    import: optional:file:.env[.properties]
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/lol_mastery_db
-    username: postgres
-    password: admin
+    url: ${DATABASE_URL_LOCAL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -20,5 +23,6 @@ spring:
 # Riot API Configuration
 riot:
   api:
-    key: RGAPI-KEY
+    key: ${RIOT_API_KEY}
     base-url: https://americas.api.riotgames.com
+    summoner-url: https://{region}.api.riotgames.com
