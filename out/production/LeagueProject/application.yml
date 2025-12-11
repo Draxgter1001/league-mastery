@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: mastery-dashboard
+
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DATABASE_URL_LOCAL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update #Create/Update tables automatically
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Riot API Configuration
+riot:
+  api:
+    key: ${RIOT_API_KEY}
+    base-url: https://americas.api.riotgames.com
+    summoner-url: https://{region}.api.riotgames.com
