@@ -24,5 +24,5 @@ spring:
 riot:
   api:
     key: ${RIOT_API_KEY}
-    base-url: https://americas.api.riotgames.com
+    account-url: https://americas.api.riotgames.com
     summoner-url: https://{region}.api.riotgames.com
