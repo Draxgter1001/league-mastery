@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,8 +35,8 @@ public class Summoner {
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
 
-    @OneToMany(mappedBy = "summoner", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChampionMastery> championMasteries;
+    @OneToMany(mappedBy = "summoner", cascade = CascadeType.ALL)
+    private List<ChampionMastery> championMasteries = new ArrayList<>();
 
     @PrePersist
     @PreUpdate

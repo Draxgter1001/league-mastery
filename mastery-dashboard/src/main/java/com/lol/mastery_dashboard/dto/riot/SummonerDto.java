@@ -8,7 +8,7 @@ public class SummonerDto {
     private String accountId;
     private String puuid;
     private String name;
-    private Integer profileIcondId;
+    private Integer profileIconId;
     private Long summonerLevel;
     private Long revisionDate;
 }
