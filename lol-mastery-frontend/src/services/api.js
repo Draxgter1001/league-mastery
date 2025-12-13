@@ -10,11 +10,17 @@ const apiClient = axios.create({
 });
 
 export const summonerApi = {
-    searchSummoner: (gameName, tagLine, region) =>
-        apiClient.get(`/summoners/${gameName}/${tagLine}`, { params: {region} }),
-
-    getMasteries: (puuid) =>
-        apiClient.get(`/summoners/${puuid}/masteries`),
+    searchSummoner: async (gameName, tagLine, region) => {
+        try{
+            const response = await apiClient.get(
+                `/summoners/${gameName}/${tagLine}`,
+                { params: { region }}
+            );
+            return response.data;
+        } catch(error){
+            throw error;
+        }
+    }
 };
 
 export default apiClient;
