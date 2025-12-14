@@ -2,8 +2,12 @@ package com.lol.mastery_dashboard.controller;
 
 import com.lol.mastery_dashboard.dto.response.SummonerResponse;
 import com.lol.mastery_dashboard.service.SummonerService;
+import com.lol.mastery_dashboard.dto.response.MatchHistoryResponse;
+import com.lol.mastery_dashboard.service.MatchService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class SummonerController {
 
     private final SummonerService summonerService;
+    private final MatchService matchService;
 
     @GetMapping("/{gameName}/{tagLine}")
     public ResponseEntity<?> getSummoner(
@@ -38,6 +43,39 @@ public class SummonerController {
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("Failed to " +
                     "fetch summoner data"));
+        }
+    }
+
+    @GetMapping("/{gameName}/{tagLine}/champion/{championId}/matches")
+    public ResponseEntity<?> getChampionMatches(
+            @PathVariable String gameName,
+            @PathVariable String tagLine,
+            @PathVariable int championId,
+            @RequestParam String region,
+            @RequestParam(defaultValue = "10") int count) {
+
+        log.info("Request for match history: {}#{} - Champion: {} ({} matches)",
+                gameName, tagLine, championId, count);
+
+        try {
+            // First get the summoner to get their PUUID
+            SummonerResponse summoner = summonerService.findOrCreateSummoner(gameName, tagLine, region);
+
+            // Get match history for this champion
+            MatchHistoryResponse matchHistory = matchService.getChampionMatchHistory(
+                    summoner.getPuuid(),
+                    region,
+                    championId,
+                    count
+            );
+
+            return ResponseEntity.ok(matchHistory);
+
+        } catch (Exception e) {
+            log.error("Error fetching match history: ", e);
+            record ErrorResponse(String message) {}
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Failed to fetch match history"));
         }
     }
 
