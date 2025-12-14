@@ -2,27 +2,40 @@ spring:
   application:
     name: mastery-dashboard
 
-  config:
-    import: optional:file:.env[.properties]
-
   datasource:
-    url: ${DATABASE_URL_LOCAL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/lol_mastery_db}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update #Create/Update tables automatically
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
 
-# Riot API Configuration
+  config:
+    import: optional:file:.env[.properties]
+
+  cache:
+    type: simple
+
+server:
+  port: ${PORT:8080}
+
 riot:
   api:
     key: ${RIOT_API_KEY}
     account-url: https://americas.api.riotgames.com
     summoner-url: https://{region}.api.riotgames.com
+
+logging:
+  level:
+    root: INFO
+    com.lol.mastery_dashboard: INFO
