@@ -13,7 +13,11 @@ function ChampionCard({ mastery }) {
         : (mastery.championPointsSinceLastLevel / (mastery.championPointsSinceLastLevel + mastery.championPointsUntilNextLevel)) * 100;
 
     return (
-        <div className="group bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 transform">
+        <div
+            className="group bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 transform focus-within:ring-2 focus-within:ring-blue-400"
+            role="article"
+            aria-label={`${championName} mastery level ${mastery.championLevel} with ${formatMasteryPoints(mastery.championPoints)} points`}
+            tabIndex={0}>
             {/* Champion Image */}
             <div className="relative overflow-hidden">
                 <LazyImage

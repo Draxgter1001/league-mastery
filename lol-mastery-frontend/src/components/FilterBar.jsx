@@ -1,3 +1,5 @@
+import { SORT_OPTIONS, MASTERY_LEVELS } from "../utils/constants.js";
+
 function FilterBar({
     sortBy,
     setSortBy,
@@ -31,12 +33,12 @@ function FilterBar({
                         onChange={(e) => setSortBy(e.target.value)}
                         className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="points-desc">Highest Points</option>
-                        <option value="points-asc">Lowest Points</option>
-                        <option value="level-desc">Highest Level</option>
-                        <option value="level-asc">Lowest Level</option>
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
+                        {SORT_OPTIONS.map((option) => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                            )
+                        )}
                     </select>
                 </div>
 
@@ -48,14 +50,12 @@ function FilterBar({
                         onChange={(e) => setFilterLevel(e.target.value)}
                         className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                        <option value="all">All Levels</option>
-                        <option value="7">Level 7</option>
-                        <option value="6">Level 6</option>
-                        <option value="5">Level 5</option>
-                        <option value="4">Level 4</option>
-                        <option value="3">Level 3</option>
-                        <option value="2">Level 2</option>
-                        <option value="1">Level 1</option>
+                        {MASTERY_LEVELS.map((level) => (
+                            <option key={level.value} value={level.value}>
+                                {level.label}
+                            </option>
+                            )
+                        )}
                     </select>
                 </div>
 

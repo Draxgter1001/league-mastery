@@ -6,6 +6,10 @@ import ChampionCard from '../components/ChampionCard';
 import FilterBar from '../components/FilterBar';
 import StatsCards from '../components/StatsCards';
 import BackToTop from "../components/BackToTop.jsx";
+import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import ErrorMessage from "../components/ErrorMessage.jsx";
+import SkipToContent from "../components/SkipToContent.jsx";
+import { REGIONS } from '../utils/constants.js';
 
 function Home() {
     const [gameName, setGameName] = useState('');
@@ -48,11 +52,19 @@ function Home() {
             const data = await summonerApi.searchSummoner(gameName, tagLine, region);
             setSummonerData(data);
         } catch (err) {
+            let errorMessage = 'Failed to fetch summoner data. Please try again.';
+
             if (err.response?.status === 404) {
-                setError(`Summoner "${gameName}#${tagLine}" not found in ${region}`);
-            } else {
-                setError('Failed to fetch summoner data. Please try again.');
+                errorMessage = `Summoner "${gameName}#${tagLine}" not found in ${region}. Please check the spelling and region.`;
+            } else if (err.response?.status === 429) {
+                errorMessage = 'Too many requests. Please wait a moment and try again.';
+            } else if (err.response?.status === 401) {
+                errorMessage = 'API authentication error. Please contact support.';
+            } else if (!err.response) {
+                errorMessage = 'Network error. Please check your internet connection.';
             }
+
+            setError(errorMessage);
             console.error('Error fetching summoner:', err);
         } finally {
             setLoading(false);
@@ -116,6 +128,7 @@ function Home() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 md:p-8">
+            <SkipToContent/>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
@@ -168,17 +181,12 @@ function Home() {
                                 onChange={(e) => setRegion(e.target.value)}
                                 className="w-full px-4 py-3 bg-gray-700/50 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                             >
-                                <option value="NA1">North America</option>
-                                <option value="EUW1">Europe West</option>
-                                <option value="EUN1">Europe Nordic & East</option>
-                                <option value="KR">Korea</option>
-                                <option value="BR1">Brazil</option>
-                                <option value="LA1">Latin America North</option>
-                                <option value="LA2">Latin America South</option>
-                                <option value="OC1">Oceania</option>
-                                <option value="TR1">Turkey</option>
-                                <option value="RU">Russia</option>
-                                <option value="JP1">Japan</option>
+                                {REGIONS.map((r) => (
+                                    <option key={r.value} value={r.value}>
+                                        {r.label}
+                                    </option>
+                                    )
+                                )}
                             </select>
                         </div>
 
@@ -202,69 +210,61 @@ function Home() {
                 </div>
 
                 {/* Error Message */}
-                {error && (
-                    <div className="bg-red-500/20 border border-red-500 text-red-200 px-6 py-4 rounded-lg mb-8 animate-shake">
-                        ❌ {error}
-                    </div>
-                )}
+                {error && <ErrorMessage message={error} onRetry={handleSearch} />}
 
                 {/* Loading State */}
-                {loading && (
-                    <div className="text-center py-20">
-                        <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
-                        <p className="mt-4 text-gray-400 animate-pulse">Fetching summoner data...</p>
-                    </div>
-                )}
+                {loading && <LoadingSpinner message="Fetching summoner data..." />}
+                <main id="main-content">
+                    {/* Summoner Data */}
+                    {summonerData && (
+                        <div className="animate-fadeIn">
+                            <SummonerProfile summoner={summonerData} />
 
-                {/* Summoner Data */}
-                {summonerData && (
-                    <div className="animate-fadeIn">
-                        <SummonerProfile summoner={summonerData} />
+                            <StatsCards
+                                summoner={summonerData}
+                                filteredCount={filteredChampions.length}
+                                totalCount={summonerData.championMasteries.length}
+                            />
 
-                        <StatsCards
-                            summoner={summonerData}
-                            filteredCount={filteredChampions.length}
-                            totalCount={summonerData.championMasteries.length}
-                        />
+                            <FilterBar
+                                sortBy={sortBy}
+                                setSortBy={setSortBy}
+                                filterLevel={filterLevel}
+                                setFilterLevel={setFilterLevel}
+                                showChestsOnly={showChestsOnly}
+                                setShowChestsOnly={setShowChestsOnly}
+                                searchTerm={searchTerm}
+                                setSearchTerm={setSearchTerm}
+                            />
 
-                        <FilterBar
-                            sortBy={sortBy}
-                            setSortBy={setSortBy}
-                            filterLevel={filterLevel}
-                            setFilterLevel={setFilterLevel}
-                            showChestsOnly={showChestsOnly}
-                            setShowChestsOnly={setShowChestsOnly}
-                            searchTerm={searchTerm}
-                            setSearchTerm={setSearchTerm}
-                        />
-
-                        {/* Champions Grid */}
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-2xl font-bold">
-                                    Champion Masteries
-                                </h2>
-                                <span className="text-gray-400 text-sm">
+                            {/* Champions Grid */}
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-2xl font-bold">
+                                        Champion Masteries
+                                    </h2>
+                                    <span className="text-gray-400 text-sm">
                   {filteredChampions.length} champion{filteredChampions.length !== 1 ? 's' : ''}
                 </span>
-                            </div>
+                                </div>
 
-                            {filteredChampions.length === 0 ? (
-                                <div className="text-center py-20 text-gray-400">
-                                    <div className="text-6xl mb-4">🔍</div>
-                                    <p className="text-xl">No champions match your filters</p>
-                                    <p className="text-sm mt-2">Try adjusting your search criteria</p>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
-                                    {filteredChampions.map((mastery) => (
-                                        <ChampionCard key={mastery.championId} mastery={mastery} />
-                                    ))}
-                                </div>
-                            )}
+                                {filteredChampions.length === 0 ? (
+                                    <div className="text-center py-20 text-gray-400">
+                                        <div className="text-6xl mb-4">🔍</div>
+                                        <p className="text-xl">No champions match your filters</p>
+                                        <p className="text-sm mt-2">Try adjusting your search criteria</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
+                                        {filteredChampions.map((mastery) => (
+                                            <ChampionCard key={mastery.championId} mastery={mastery} />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </main>
             </div>
             <BackToTop/>
         </div>
