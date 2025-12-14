@@ -52,7 +52,7 @@ public class SummonerController {
             @PathVariable String tagLine,
             @PathVariable int championId,
             @RequestParam String region,
-            @RequestParam(defaultValue = "10") int count) {
+            @RequestParam(defaultValue = "20") int count) {
 
         log.info("Request for match history: {}#{} - Champion: {} ({} matches)",
                 gameName, tagLine, championId, count);
