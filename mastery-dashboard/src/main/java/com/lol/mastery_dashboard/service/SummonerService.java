@@ -164,4 +164,34 @@ public class SummonerService {
                 .isChestAvailable(!mastery.getChestGranted())
                 .build();
     }
+
+    /**
+     * Get summoner PUUID without refreshing mastery data
+     * Used for match history lookups to avoid unnecessary database operations
+     */
+    public String getPuuidOnly(String gameName, String tagLine, String region) {
+        log.info("Getting PUUID for {}#{} in {}", gameName, tagLine, region);
+
+        String normalizedRegion = region.toUpperCase();
+
+        // Check if we already have this summoner in database
+        java.util.Optional<Summoner> existingSummoner = summonerRepository
+                .findByGameNameAndTagLineAndRegion(gameName, tagLine, normalizedRegion);
+
+        if (existingSummoner.isPresent()) {
+            // Return cached PUUID
+            log.info("Found cached summoner with PUUID: {}", existingSummoner.get().getPuuid());
+            return existingSummoner.get().getPuuid();
+        }
+
+        // If not in database, fetch from Riot API
+        log.info("Summoner not in cache, fetching from Riot API");
+        AccountDto accountDto = riotApiService.getAccountByRiotId(gameName, tagLine);
+
+        if (accountDto == null) {
+            throw new RuntimeException("Summoner not found: " + gameName + "#" + tagLine);
+        }
+
+        return accountDto.getPuuid();
+    }
 }

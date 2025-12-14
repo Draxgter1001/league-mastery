@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { getChampionImageUrl, getChampionName, getMasteryLevelColor, formatMasteryPoints } from '../utils/championData';
-import LazyImage from "./LazyImage.jsx";
+import LazyImage from './LazyImage';
+import MatchHistory from './MatchHistory';
 
-function ChampionCard({ mastery }) {
+function ChampionCard({ mastery, summonerInfo }) {
+    const [showMatches, setShowMatches] = useState(false);
+
     const championName = getChampionName(mastery.championId);
     const imageUrl = getChampionImageUrl(mastery.championId);
     const levelColor = getMasteryLevelColor(mastery.championLevel);
@@ -9,15 +13,11 @@ function ChampionCard({ mastery }) {
     const progress = mastery.championPointsUntilNextLevel === null
         ? 100
         : mastery.championPointsSinceLastLevel === null
-        ? 0
-        : (mastery.championPointsSinceLastLevel / (mastery.championPointsSinceLastLevel + mastery.championPointsUntilNextLevel)) * 100;
+            ? 0
+            : (mastery.championPointsSinceLastLevel / (mastery.championPointsSinceLastLevel + mastery.championPointsUntilNextLevel)) * 100;
 
     return (
-        <div
-            className="group bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 transform focus-within:ring-2 focus-within:ring-blue-400"
-            role="article"
-            aria-label={`${championName} mastery level ${mastery.championLevel} with ${formatMasteryPoints(mastery.championPoints)} points`}
-            tabIndex={0}>
+        <div className="group bg-gray-800 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-105 transform">
             {/* Champion Image */}
             <div className="relative overflow-hidden">
                 <LazyImage
@@ -29,7 +29,6 @@ function ChampionCard({ mastery }) {
                     }}
                 />
 
-                {/* Gradient Overlay on Hover */}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 group-hover:opacity-70 transition-opacity duration-300" />
 
                 {/* Mastery Level Badge */}
@@ -62,7 +61,6 @@ function ChampionCard({ mastery }) {
                 {mastery.championPointsUntilNextLevel !== null && mastery.championPointsUntilNextLevel !== 0 ? (
                     <div className="mb-1">
                         {mastery.championPointsUntilNextLevel < 0 ? (
-                            // Player has enough points but needs tokens
                             <div className="bg-yellow-500/20 border border-yellow-500 rounded px-2 py-1">
                                 <div className="text-xs text-yellow-400 font-semibold">
                                     ⭐ Ready to level up!
@@ -72,7 +70,6 @@ function ChampionCard({ mastery }) {
                                 </div>
                             </div>
                         ) : (
-                            // Normal progress
                             <>
                                 <div className="w-full bg-gray-700 rounded-full h-1.5 md:h-2 overflow-hidden">
                                     <div
@@ -99,7 +96,28 @@ function ChampionCard({ mastery }) {
                         <span>{mastery.tokensEarned} token{mastery.tokensEarned > 1 ? 's' : ''}</span>
                     </div>
                 )}
+
+                {/* Show Match History Button */}
+                <button
+                    onClick={() => setShowMatches(!showMatches)}
+                    className="w-full mt-3 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded text-xs font-semibold transition-all duration-200 flex items-center justify-center gap-1"
+                >
+                    <span>{showMatches ? '▼' : '▶'}</span>
+                    <span>{showMatches ? 'Hide' : 'Show'} Matches</span>
+                </button>
             </div>
+
+            {/* Expandable Match History */}
+            {showMatches && summonerInfo && (
+                <div className="border-t border-gray-700 p-3 bg-gray-900/50">
+                    <MatchHistory
+                        gameName={summonerInfo.gameName}
+                        tagLine={summonerInfo.tagLine}
+                        championId={mastery.championId}
+                        region={summonerInfo.region}
+                    />
+                </div>
+            )}
         </div>
     );
 }

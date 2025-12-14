@@ -9,9 +9,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,21 +22,48 @@ public class MatchService {
     public MatchHistoryResponse getChampionMatchHistory(String puuid, String region, int championId, int matchCount) {
         log.info("Fetching match history for champion {} - PUUID: {}", championId, puuid);
 
-        // Get recent match IDs (fetch more to filter by champion)
-        List<String> allMatchIds = riotApiService.getMatchIdsByPuuid(puuid, region, matchCount * 3);
+        // CHANGED: Fetch fewer matches initially (was matchCount * 3)
+        // This reduces API calls significantly
+        List<String> allMatchIds = riotApiService.getMatchIdsByPuuid(puuid, region, Math.min(matchCount * 2, 30));
 
         if (allMatchIds == null || allMatchIds.isEmpty()) {
             return buildEmptyResponse(championId);
         }
 
         // Fetch match details and filter by champion
-        List<MatchHistoryResponse.MatchSummary> championMatches = allMatchIds.stream()
-                .map(matchId -> riotApiService.getMatchDetails(matchId, region))
-                .filter(Objects::nonNull)
-                .map(match -> extractPlayerMatch(match, puuid, championId))
-                .filter(Objects::nonNull)
-                .limit(matchCount)
-                .collect(Collectors.toList());
+        // CHANGED: Added counter to stop early once we have enough matches
+        List<MatchHistoryResponse.MatchSummary> championMatches = new ArrayList<>();
+        int processedMatches = 0;
+
+        for (String matchId : allMatchIds) {
+            // Stop if we have enough champion-specific matches
+            if (championMatches.size() >= matchCount) {
+                break;
+            }
+
+            try {
+                MatchDto match = riotApiService.getMatchDetails(matchId, region);
+                if (match != null) {
+                    MatchHistoryResponse.MatchSummary summary = extractPlayerMatch(match, puuid, championId);
+                    if (summary != null) {
+                        championMatches.add(summary);
+                    }
+                }
+                processedMatches++;
+
+                // ADDED: Small delay to avoid rate limiting (optional but helpful)
+                if (processedMatches % 10 == 0) {
+                    try {
+                        Thread.sleep(50); // 50ms pause every 10 requests
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch match {}: {}", matchId, e.getMessage());
+                // Continue to next match instead of failing entirely
+            }
+        }
 
         // Calculate overall stats
         MatchHistoryResponse.MatchStats stats = calculateStats(championMatches);

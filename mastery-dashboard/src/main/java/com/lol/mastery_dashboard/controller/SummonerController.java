@@ -52,18 +52,18 @@ public class SummonerController {
             @PathVariable String tagLine,
             @PathVariable int championId,
             @RequestParam String region,
-            @RequestParam(defaultValue = "20") int count) {
+            @RequestParam(defaultValue = "10") int count) {
 
         log.info("Request for match history: {}#{} - Champion: {} ({} matches)",
                 gameName, tagLine, championId, count);
 
         try {
-            // First get the summoner to get their PUUID
-            SummonerResponse summoner = summonerService.findOrCreateSummoner(gameName, tagLine, region);
+            // Get PUUID without refreshing mastery data
+            String puuid = summonerService.getPuuidOnly(gameName, tagLine, region);
 
             // Get match history for this champion
             MatchHistoryResponse matchHistory = matchService.getChampionMatchHistory(
-                    summoner.getPuuid(),
+                    puuid,
                     region,
                     championId,
                     count
@@ -73,7 +73,8 @@ public class SummonerController {
 
         } catch (Exception e) {
             log.error("Error fetching match history: ", e);
-            record ErrorResponse(String message) {}
+            record ErrorResponse(String message) {
+            }
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Failed to fetch match history"));
         }

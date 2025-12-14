@@ -169,7 +169,7 @@ public class RiotApiService {
             return null;
         }catch (Exception e){
             log.error("Error fetching match details: ", e);
-            throw new RuntimeException("Failed to fetch match details: " + e.getMessage());
+            return null;
         }
     }
 
