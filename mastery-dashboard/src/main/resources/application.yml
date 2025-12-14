@@ -16,6 +16,9 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
 
   config:
     import: optional:file:.env[.properties]
@@ -31,3 +34,8 @@ riot:
     key: ${RIOT_API_KEY}
     account-url: https://americas.api.riotgames.com
     summoner-url: https://{region}.api.riotgames.com
+
+logging:
+  level:
+    root: INFO
+    com.lol.mastery_dashboard: INFO
