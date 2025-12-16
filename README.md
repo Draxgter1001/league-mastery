@@ -15,8 +15,8 @@ Track your champion mastery progress, view match history, and optimize your game
 ## 🛠️ Tech Stack
 
 **Backend:**
-- Spring Boot 3.x
-- Java 17
+- Spring Boot 4.0.0
+- Java 21
 - PostgreSQL
 - Spring Data JPA
 - Riot Games API
