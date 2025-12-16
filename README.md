@@ -1,6 +1,7 @@
 # League of Legends Mastery Dashboard
 
 Track your champion mastery progress, view match history, and optimize your gameplay.
+
 <img width="1062" height="848" alt="image" src="https://github.com/user-attachments/assets/6ee29771-e480-46a1-bcc8-bd84d96ac7c4" />
 
 ## 🚀 Features
