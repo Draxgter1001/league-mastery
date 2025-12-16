@@ -244,8 +244,8 @@ function Home() {
                                         Champion Masteries
                                     </h2>
                                     <span className="text-gray-400 text-sm">
-                  {filteredChampions.length} champion{filteredChampions.length !== 1 ? 's' : ''}
-                </span>
+                                      {filteredChampions.length} champion{filteredChampions.length !== 1 ? 's' : ''}
+                                    </span>
                                 </div>
 
                                 {filteredChampions.length === 0 ? (
@@ -257,7 +257,16 @@ function Home() {
                                 ) : (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                                         {filteredChampions.map((mastery) => (
-                                            <ChampionCard key={mastery.championId} mastery={mastery} />
+                                            <ChampionCard
+                                                key={mastery.championId}
+                                                mastery={mastery}
+                                                championName={getChampionName(mastery.championId)}
+                                                summonerInfo={{
+                                                    gameName: summonerData.gameName,
+                                                    tagLine: summonerData.tagLine,
+                                                    region: summonerData.region
+                                                }}
+                                            />
                                         ))}
                                     </div>
                                 )}
