@@ -132,10 +132,10 @@ function Home() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl md:text-6xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-gradient">
-                        LoL Mastery Dashboard
+                    <h1 className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 leading-tight pb-2">
+                        Masteries League of Legends
                     </h1>
-                    <p className="text-gray-400 text-sm md:text-base">
+                    <p className="text-slate-400 mt-4">
                         Track your champion mastery progress and available chests
                     </p>
                 </div>
