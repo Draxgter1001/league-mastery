@@ -22,21 +22,19 @@ public class MatchService {
     public MatchHistoryResponse getChampionMatchHistory(String puuid, String region, int championId, int matchCount) {
         log.info("Fetching match history for champion {} - PUUID: {}", championId, puuid);
 
-        // CHANGED: Fetch fewer matches initially (was matchCount * 3)
-        // This reduces API calls significantly
         List<String> allMatchIds = riotApiService.getMatchIdsByPuuid(puuid, region, Math.min(matchCount * 2, 30));
 
         if (allMatchIds == null || allMatchIds.isEmpty()) {
             return buildEmptyResponse(championId);
         }
 
-        // Fetch match details and filter by champion
-        // CHANGED: Added counter to stop early once we have enough matches
         List<MatchHistoryResponse.MatchSummary> championMatches = new ArrayList<>();
         int processedMatches = 0;
 
+        // Get champion name from first match (or we could maintain a champion mapping)
+        String championName = null;
+
         for (String matchId : allMatchIds) {
-            // Stop if we have enough champion-specific matches
             if (championMatches.size() >= matchCount) {
                 break;
             }
@@ -47,32 +45,46 @@ public class MatchService {
                     MatchHistoryResponse.MatchSummary summary = extractPlayerMatch(match, puuid, championId);
                     if (summary != null) {
                         championMatches.add(summary);
+
+                        // Get champion name from the match data (Riot provides it)
+                        if (championName == null) {
+                            championName = getChampionNameFromMatch(match, puuid);
+                        }
                     }
                 }
                 processedMatches++;
 
-                // ADDED: Small delay to avoid rate limiting (optional but helpful)
                 if (processedMatches % 10 == 0) {
                     try {
-                        Thread.sleep(50); // 50ms pause every 10 requests
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 }
             } catch (Exception e) {
                 log.warn("Failed to fetch match {}: {}", matchId, e.getMessage());
-                // Continue to next match instead of failing entirely
             }
         }
 
-        // Calculate overall stats
         MatchHistoryResponse.MatchStats stats = calculateStats(championMatches);
 
         return MatchHistoryResponse.builder()
                 .championId(championId)
+                .championName(championName)  // ← NOW SET!
                 .recentMatches(championMatches)
                 .overallStats(stats)
                 .build();
+    }
+
+    /**
+     * Extract champion name from match data
+     */
+    private String getChampionNameFromMatch(MatchDto match, String puuid) {
+        return match.getInfo().getParticipants().stream()
+                .filter(p -> p.getPuuid().equals(puuid))
+                .findFirst()
+                .map(MatchDto.Participant::getChampionName)
+                .orElse(null);
     }
 
     private MatchHistoryResponse.MatchSummary extractPlayerMatch(MatchDto match, String puuid, int championId) {
@@ -169,7 +181,8 @@ public class MatchService {
     private MatchHistoryResponse buildEmptyResponse(int championId) {
         return MatchHistoryResponse.builder()
                 .championId(championId)
-                .recentMatches(List.of())
+                .championName(null)  // We don't have matches to extract name from
+                .recentMatches(new ArrayList<>())
                 .overallStats(MatchHistoryResponse.MatchStats.builder()
                         .totalGames(0)
                         .wins(0)
@@ -183,17 +196,44 @@ public class MatchService {
                 .build();
     }
 
-    private String getGameModeName(int queueId) {
+    private String getGameModeName(Integer queueId) {
+        log.info("Queue ID: {}", queueId);
+        if (queueId == null) {
+            return "Unknown";
+        }
+
         return switch (queueId) {
-            case 400, 430 -> "Normal";
-            case 420 -> "Ranked Solo";
+            // Ranked modes
+            case 420 -> "Ranked Solo/Duo";
             case 440 -> "Ranked Flex";
+            case 470 -> "Ranked Flex 3v3"; // Deprecated but still in history
+
+            // Normal modes
+            case 400 -> "Normal Draft";
+            case 430 -> "Normal Blind";
+            case 490 -> "Normal Quickplay";
+
+            // ARAM & Special modes
             case 450 -> "ARAM";
-            case 700 -> "Clash";
-            case 900 -> "URF";
+            case 900 -> "ARURF";
             case 1020 -> "One For All";
             case 1300 -> "Nexus Blitz";
-            default -> "Custom";
+            case 1400 -> "Ultimate Spellbook";
+            case 1700 -> "Arena";
+            case 1900 -> "URF";
+
+            // Clash
+            case 700 -> "Clash";
+
+            // Tutorial & Co-op
+            case 830, 840, 850 -> "Co-op vs AI";
+            case 2000, 2010, 2020 -> "Tutorial";
+
+            // Custom games
+            case 0 -> "Custom";
+
+            // Unknown/Other
+            default -> "Custom (Queue " + queueId + ")";
         };
     }
 }

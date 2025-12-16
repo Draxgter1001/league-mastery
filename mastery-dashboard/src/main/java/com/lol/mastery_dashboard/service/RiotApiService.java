@@ -162,6 +162,14 @@ public class RiotApiService {
                     .bodyToMono(MatchDto.class)
                     .block();
 
+            if(match != null && match.getInfo() != null){
+                log.info("Match {} -  Queue ID: {}, Game Mode: {}",
+                        matchId,
+                        match.getInfo().getQueueId(),
+                        match.getInfo().getGameMode()
+                        );
+            }
+
             log.info("Successfully fetched match: {}",matchId);
             return match;
         }catch (WebClientResponseException.NotFound e){

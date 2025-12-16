@@ -30,7 +30,7 @@ public class MatchDto {
         @JsonProperty("gameMode")
         private String gameMode;
 
-        @JsonProperty("gueueId")
+        @JsonProperty("queueId")
         private int queueId;
 
         @JsonProperty("participants")

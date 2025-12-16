@@ -260,6 +260,7 @@ function Home() {
                                             <ChampionCard
                                                 key={mastery.championId}
                                                 mastery={mastery}
+                                                championName={getChampionName(mastery.championId)}
                                                 summonerInfo={{
                                                     gameName: summonerData.gameName,
                                                     tagLine: summonerData.tagLine,
