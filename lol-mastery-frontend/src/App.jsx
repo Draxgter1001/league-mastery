@@ -1,6 +1,6 @@
 import Home from './pages/Home.jsx'
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import { Analytics } from '@vercel/analytics/react';
+import { Analytics } from '@vercel/analytics/next';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App(){
