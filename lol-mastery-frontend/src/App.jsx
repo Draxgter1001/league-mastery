@@ -1,6 +1,5 @@
 import Home from './pages/Home.jsx'
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
-import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App(){
@@ -11,7 +10,6 @@ function App(){
                     <Route path='/' element={<Home/>} />
                 </Routes>
             </Router>
-            <Analytics/>
         </ErrorBoundary>
     )
 }
