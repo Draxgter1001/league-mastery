@@ -51,14 +51,6 @@ const ChampionCard = ({ mastery, championName, summonerInfo }) => {
     };
 
     const renderLevelUpIndicator = () => {
-        if (mastery.championLevel === 7) {
-            return (
-                <div className="mt-2 px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full text-center">
-                    ⭐ Max Level
-                </div>
-            );
-        }
-
         if (mastery.championPointsUntilNextLevel === 0) {
             return (
                 <div className="mt-2 px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full text-center animate-pulse">
@@ -69,15 +61,6 @@ const ChampionCard = ({ mastery, championName, summonerInfo }) => {
                 </div>
             );
         }
-
-        if (mastery.tokensEarned > 0) {
-            return (
-                <div className="mt-2 px-3 py-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs font-semibold rounded-full text-center">
-                    🎖️ {mastery.tokensEarned} token{mastery.tokensEarned > 1 ? 's' : ''}
-                </div>
-            );
-        }
-
         return null;
     };
 
@@ -102,8 +85,14 @@ const ChampionCard = ({ mastery, championName, summonerInfo }) => {
                     {getMasteryBadge(mastery.championLevel)}
 
                     {/* Chest Indicator */}
+                    {!mastery.chestGranted && (
+                        <div className="absolute top-2 left-2 bg-yellow-500/90 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg">
+                            💎 Chest Eligible
+                        </div>
+                    )}
+
                     {mastery.chestGranted && (
-                        <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg">
+                        <div className="absolute top-2 left-2 bg-green-500/90 text-white px-2 py-1 rounded-md text-xs font-semibold shadow-lg">
                             📦 Chest Earned
                         </div>
                     )}
@@ -120,13 +109,13 @@ const ChampionCard = ({ mastery, championName, summonerInfo }) => {
                     {renderLevelUpIndicator()}
 
                     {/* Progress Bar */}
-                    {mastery.championLevel < 7 && (
+                    {mastery.championPointsUntilNextLevel > 0 && (
                         <div className="mt-3">
                             <div className="flex justify-between text-xs text-slate-300 mb-1">
                                 <span>Progress to Level {mastery.championLevel + 1}</span>
                                 <span>
-                  {formatNumber(mastery.championPointsSinceLastLevel)} / {formatNumber(mastery.championPointsSinceLastLevel + mastery.championPointsUntilNextLevel)}
-                </span>
+                                    {formatNumber(mastery.championPointsSinceLastLevel)} / {formatNumber(mastery.championPointsSinceLastLevel + mastery.championPointsUntilNextLevel)}
+                                </span>
                             </div>
                             <div className="w-full bg-slate-800/50 rounded-full h-2 overflow-hidden">
                                 <div
@@ -141,8 +130,8 @@ const ChampionCard = ({ mastery, championName, summonerInfo }) => {
                     <button
                         onClick={() => setShowMatchModal(true)}
                         className="mt-4 w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium
-              hover:from-blue-700 hover:to-purple-700 transition-all duration-200 rounded-lg
-              flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+                                    hover:from-blue-700 hover:to-purple-700 transition-all duration-200 rounded-lg
+                                    flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                         aria-label={`Show match history for ${championName}`}
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

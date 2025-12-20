@@ -1,4 +1,4 @@
-export const DD_VERSION = import.meta.env.VITE_DD_VERSION || '14.23.1';
+export const DD_VERSION = import.meta.env.VITE_DD_VERSION || '15.24.1';
 export const DD_BASE_URL = 'https://ddragon.leagueoflegends.com/cdn';
 
 // Cache for champion data
