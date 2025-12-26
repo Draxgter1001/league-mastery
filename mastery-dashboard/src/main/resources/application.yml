@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update #Create/Update tables automatically
+      ddl-auto: validate #Create/Update tables automatically
     show-sql: true
     properties:
       hibernate:
