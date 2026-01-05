@@ -18,6 +18,7 @@ public class MatchHistoryResponse {
     @Builder
     public static class MatchSummary {
         private String matchId;
+        private Integer championId;
         private LocalDateTime gameDate;
         private String gameMode;
         private int gameDuration; // in seconds

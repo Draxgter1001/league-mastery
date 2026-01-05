@@ -34,6 +34,19 @@ export const summonerApi = {
             console.error(`Error fetching matches for champion ${championId}:`, error);
             throw error;
         }
+    },
+
+    getRecentMatches: async (gameName, tagLine, region, count = 20) => {
+        try {
+            const response = await apiClient.get(
+                `/summoners/${gameName}/${tagLine}/matches`,
+                { params: { region, count } }
+            );
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching recent matches:', error);
+            throw error;
+        }
     }
 };
 

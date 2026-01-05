@@ -10,6 +10,7 @@ import LoadingSpinner from "../components/LoadingSpinner.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
 import SkipToContent from "../components/SkipToContent.jsx";
 import { REGIONS } from '../utils/constants.js';
+import RecentMatchesPanel from "../components/RecentMatchesPanel.jsx";
 
 function Home() {
     const [gameName, setGameName] = useState('');
@@ -224,6 +225,14 @@ function Home() {
                                 summoner={summonerData}
                                 filteredCount={filteredChampions.length}
                                 totalCount={summonerData.championMasteries.length}
+                            />
+
+                            <RecentMatchesPanel
+                                summonerInfo={{
+                                    gameName: summonerData.gameName,
+                                    tagLine: summonerData.tagLine,
+                                    region: summonerData.region
+                                }}
                             />
 
                             <FilterBar

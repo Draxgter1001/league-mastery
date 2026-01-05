@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/summoners")
 @RequiredArgsConstructor
@@ -76,6 +78,29 @@ public class SummonerController {
             }
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponse("Failed to fetch match history"));
+        }
+    }
+
+    @GetMapping("/{gameName}/{tagLine}/matches")
+    public ResponseEntity<?> getRecentMatches(
+            @PathVariable String gameName,
+            @PathVariable String tagLine,
+            @RequestParam String region,
+            @RequestParam(defaultValue = "20") int count) {
+
+        log.info("Request for recent matches: {}#{} ({} matches)", gameName, tagLine, count);
+
+        try {
+            String puuid = summonerService.getPuuidOnly(gameName, tagLine, region);
+            List<MatchHistoryResponse.MatchSummary> matches = matchService.getRecentMatches(puuid, region, count);
+
+            return ResponseEntity.ok(matches);
+
+        } catch (Exception e) {
+            log.error("Error fetching recent matches: ", e);
+            record ErrorResponse(String message) {}
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponse("Failed to fetch recent matches"));
         }
     }
 

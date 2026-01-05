@@ -112,7 +112,7 @@ public class MatchService {
         return MatchHistoryResponse.MatchSummary.builder()
                 .matchId(match.getMetadata().getMatchId())
                 .gameDate(gameDate)
-                .gameMode(getGameModeName(match.getInfo().getQueueId()))
+                .gameMode(getGameModeName(match.getInfo().getQueueId(), match.getInfo().getGameMode()))
                 .gameDuration((int) match.getInfo().getGameDuration())
                 .win(player.isWin())
                 .kills(player.getKills())
@@ -196,7 +196,7 @@ public class MatchService {
                 .build();
     }
 
-    private String getGameModeName(Integer queueId) {
+    private String getGameModeName(Integer queueId, String gameMode) {
         log.info("Queue ID: {}", queueId);
         if (queueId == null) {
             return "Unknown";
@@ -235,5 +235,90 @@ public class MatchService {
             // Unknown/Other
             default -> "Custom (Queue " + queueId + ")";
         };
+    }
+
+    /**
+     * Get recent matches for a summoner (all champions)
+     */
+    public List<MatchHistoryResponse.MatchSummary> getRecentMatches(String puuid, String region, int matchCount) {
+        log.info("Fetching {} recent matches for PUUID: {}", matchCount, puuid);
+
+        List<String> matchIds = riotApiService.getMatchIdsByPuuid(puuid, region, matchCount);
+
+        if (matchIds == null || matchIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<MatchHistoryResponse.MatchSummary> matches = new ArrayList<>();
+
+        for (String matchId : matchIds) {
+            try {
+                MatchDto match = riotApiService.getMatchDetails(matchId, region);
+                if (match != null) {
+                    MatchHistoryResponse.MatchSummary summary = extractPlayerMatchAllChampions(match, puuid);
+                    if (summary != null) {
+                        matches.add(summary);
+                    }
+                }
+
+                // Small delay every 5 matches
+                if (matches.size() % 5 == 0) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch match {}: {}", matchId, e.getMessage());
+            }
+        }
+
+        log.info("Successfully fetched {} matches", matches.size());
+        return matches;
+    }
+
+    /**
+     * Extract player match without filtering by champion (for recent matches view)
+     */
+    private MatchHistoryResponse.MatchSummary extractPlayerMatchAllChampions(MatchDto match, String puuid) {
+        // Find the participant matching this PUUID
+        MatchDto.Participant player = match.getInfo().getParticipants().stream()
+                .filter(p -> p.getPuuid().equals(puuid))
+                .findFirst()
+                .orElse(null);
+
+        if (player == null) {
+            return null;
+        }
+
+        // Calculate KDA
+        double kda = player.getDeaths() == 0
+                ? (player.getKills() + player.getAssists())
+                : (double) (player.getKills() + player.getAssists()) / player.getDeaths();
+
+        // Convert timestamp to LocalDateTime
+        LocalDateTime gameDate = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(match.getInfo().getGameCreation()),
+                ZoneId.systemDefault()
+        );
+
+        return MatchHistoryResponse.MatchSummary.builder()
+                .matchId(match.getMetadata().getMatchId())
+                .championId(player.getChampionId())
+                .gameDate(gameDate)
+                .gameMode(getGameModeName(match.getInfo().getQueueId(), match.getInfo().getGameMode()))
+                .gameDuration((int) match.getInfo().getGameDuration())
+                .win(player.isWin())
+                .kills(player.getKills())
+                .deaths(player.getDeaths())
+                .assists(player.getAssists())
+                .kda(Math.round(kda * 100.0) / 100.0)
+                .championLevel(player.getChampLevel())
+                .totalMinionsKilled(player.getTotalMinionsKilled() + player.getNeutralMinionsKilled())
+                .goldEarned(player.getGoldEarned())
+                .lane(player.getTeamPosition())
+                .role(player.getRole())
+                .build();
     }
 }
